@@ -41,7 +41,7 @@ class UserLoginSerializer(ModelSerializer):
                         }
 
     def validate(self, data):
-        password = data["password"]
+        password = data.get("password")
         email = data.get("email")
         username = data.get("username")
         user = User.objects.filter(email=email).distinct() | User.objects.filter(username=username).distinct()
@@ -58,3 +58,41 @@ class UserLoginSerializer(ModelSerializer):
         data["token"] = token
         data["user"] = user_obj
         return data
+
+class UserCreateSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'password'
+        ]
+        extra_kwargs = {"password":
+                            {"write_only": True}
+                        }
+
+    def create(self, validated_data):
+        username = validated_data.get('username')
+        first_name = validated_data.get('first_name')
+        last_name = validated_data.get('last_name')
+        email = validated_data.get('email')
+        password = validated_data.get('password')
+        user_obj = User(
+            username=username,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+        )
+
+        user_obj.set_password(password)
+        user_obj.save()
+        return validated_data
+
+    def validate_email(self, value):
+        email = value
+        user_qs = User.objects.filter(email=email)
+        if user_qs.exists():
+            raise ValidationError("This email has already been registered.")
+        return value
