@@ -23,6 +23,7 @@ from API.settings import base as settings
 urlpatterns = [
     url(r'admin/', admin.site.urls),
     url(r'^auth/', include('auth.urls')),
+    url(r'^courses/', include('course.urls')),
 ]
 
 if settings.DEBUG:

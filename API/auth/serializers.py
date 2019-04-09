@@ -22,15 +22,13 @@ class UserDetailSerializer(ModelSerializer):
 
 class UserLoginSerializer(ModelSerializer):
     token = CharField(allow_blank=True, read_only=True)
-    username = CharField(write_only=True, required=False)
-    email = EmailField(label='Email Address', write_only=True, required=False)
+    username = CharField(write_only=True, required=True)
     user = UserDetailSerializer(read_only=True)
 
     class Meta:
         model = User
         fields = [
             'username',
-            'email',
             'password',
             'token',
             'user',
@@ -42,9 +40,8 @@ class UserLoginSerializer(ModelSerializer):
 
     def validate(self, data):
         password = data.get("password")
-        email = data.get("email")
         username = data.get("username")
-        user = User.objects.filter(email=email).distinct() | User.objects.filter(username=username).distinct()
+        user = User.objects.filter(email=username).distinct() | User.objects.filter(username=username).distinct()
         if user.exists() and user.count() == 1:
             user_obj = user.first()
         else:
