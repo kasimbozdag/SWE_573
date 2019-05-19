@@ -12,6 +12,7 @@ class ContentSerializer(ModelSerializer):
             'text',
             'file'
         ]
+        extra_kwargs = {'file': {'required': False}}
 
 
 class ContentsSerializer(ModelSerializer):

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'content',
     'course',
     'lesson',
+    'quiz',
     'corsheaders',
 ]
 
