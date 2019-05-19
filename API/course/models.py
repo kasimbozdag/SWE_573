@@ -15,3 +15,8 @@ class Course(models.Model):
 
     def __str__(self):
         return self.title
+
+    def is_authorized(self, user):
+        if self.owner == user:
+            return True
+        return False

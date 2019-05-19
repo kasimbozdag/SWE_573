@@ -1,22 +1,24 @@
 from auth.serializers import UserDetailSerializer
-from course.models import *
+from course.serializers import CourseDetailSerializer
+from .models import *
 
 from content.serializers import ContentSerializer
 
 from rest_framework.serializers import ModelSerializer
 
 
-class CourseSerializer(ModelSerializer):
+class LessonSerializer(ModelSerializer):
 
     class Meta:
-        model = Course
+        model = Lesson
         fields = "__all__"
 
 
-class CourseDetailSerializer(ModelSerializer):
+class LessonDetailSerializer(ModelSerializer):
     description=ContentSerializer()
     owner=UserDetailSerializer()
+    course=CourseDetailSerializer()
 
     class Meta:
-        model = Course
+        model = Lesson
         fields = "__all__"

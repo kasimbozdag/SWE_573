@@ -34,13 +34,14 @@ class CourseCreateAPIView(APIView):
         return Response(serializer.data, status=HTTP_200_OK)
 
 
-
 class CourseAPIView(APIView):
     def put(self, request, *args, **kwargs):
         user = request.user
         data = request.data
         pk = kwargs['pk']
         course = get_object_or_404(Course, pk=pk)
+        if not course.is_authorized(request.user):
+            return Response(status=401)
         content = course.description
         content_data = {'text': data['text'], "last_edited_at": datetime.datetime.now()}
         if "file" in request.FILES:
@@ -70,6 +71,8 @@ class CourseAPIView(APIView):
     def delete(self, request, *args, **kwargs):
         pk = kwargs['pk']
         course = get_object_or_404(Course, pk=pk)
+        if not course.is_authorized(request.user):
+            return Response(status=401)
         content = course.description
         course.delete()
         content.delete()
@@ -81,9 +84,9 @@ class CourseListAPIView(ListAPIView):
     queryset = Course.objects.all()
 
     def get_queryset(self):
-        params=self.request.query_params
+        params = self.request.query_params
         if "q" in params:
-            query=params['q']
+            query = params['q']
             if query == "first":
                 return Course.objects.all()
             if query == "title":
@@ -96,3 +99,27 @@ class TeacherCoursesAPIView(ListAPIView):
 
     def get_queryset(self):
         return Course.objects.filter(owner=self.request.user)
+
+
+class CourseInactivateAPIView(APIView):
+    def put(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        course = get_object_or_404(Course, pk=pk)
+        if not course.is_authorized(request.user):
+            return Response(status=401)
+        course.is_active = False
+        course.save()
+        return Response(status=HTTP_200_OK)
+
+
+class CourseActivateAPIView(APIView):
+    def put(self, request, *args, **kwargs):
+        pk = kwargs['pk']
+        course = get_object_or_404(Course, pk=pk)
+        if not course.is_authorized(request.user):
+            return Response(status=401)
+        course.is_active = True
+        course.save()
+        return Response(status=HTTP_200_OK)
+
+

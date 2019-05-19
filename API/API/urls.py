@@ -24,6 +24,8 @@ urlpatterns = [
     url(r'admin/', admin.site.urls),
     url(r'^auth/', include('auth.urls')),
     url(r'^courses/', include('course.urls')),
+    url(r'^lessons/', include('lesson.urls')),
+    url(r'^contents/', include('content.urls')),
 ]
 
 if settings.DEBUG:

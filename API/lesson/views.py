@@ -8,125 +8,124 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 from rest_framework.views import APIView
 
-from content.models import Content
-from content.serializers import ContentSerializer, ContentsSerializer, ContentsDetailSerializer
-from lesson.models import Lesson, Contents
+from content.serializers import ContentSerializer
+from course.models import Course
+from lesson.models import Lesson
+from lesson.serializers import LessonSerializer, LessonDetailSerializer
 
 
-class ContentCreateAPIView(APIView):
+class LessonCreateAPIView(APIView):
     def post(self, request, *args, **kwargs):
         user = request.user
         data = request.data
-        lesson = get_object_or_404(Lesson, pk=kwargs.get("pk"))
-        content = {'text': data['text'], "sub_title": data['title']}
+        course = get_object_or_404(Course, pk=kwargs.get("pk"))
+        content = {'text': data['text']}
         if "file" in request.FILES:
             file = request.FILES['file']
             content['file'] = file
         serializer = ContentSerializer(data=content)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        contents = {
-            "lesson": kwargs.get("pk"),
-            "content": serializer.instance.pk,
+        lesson = {
+            "title": data['title'],
             "owner": user.pk,
+            "description": serializer.instance.pk,
             "place": data['place'],
+            "course": kwargs.get("pk"),
         }
-        serializer = ContentsSerializer(data=contents)
+        serializer = LessonSerializer(data=lesson)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=HTTP_200_OK)
 
 
-class ContentsListAPIView(ListAPIView):
-    serializer_class = ContentsDetailSerializer
-    queryset = Contents.objects.all()
+class LessonListAPIView(ListAPIView):
+    serializer_class = LessonDetailSerializer
+    queryset = Lesson.objects.all()
 
     def get_queryset(self):
-        return Contents.objects.filter(lesson=self.kwargs.get("pk"), is_active=True).order_by("place")
+        return Lesson.objects.filter(course=self.kwargs.get("pk"),is_active=True).order_by("place")
 
-
-class ContentsAPIView(APIView):
+class LessonAPIView(APIView):
     def put(self, request, *args, **kwargs):
         user = request.user
         data = request.data
         pk = kwargs['pk']
-        contents = get_object_or_404(Contents, pk=pk)
-        if not contents.is_authorized(request.user):
+        lesson = get_object_or_404(Lesson, pk=pk)
+        if not lesson.is_authorized(request.user):
             return Response(status=401)
-        content = contents.content
-        content_data = {'text': data['text'], "last_edited_at": datetime.datetime.now(), "sub_title": data['title']}
+        content = lesson.description
+        content_data = {'text': data['text'], "last_edited_at": datetime.datetime.now()}
         if "file" in request.FILES:
             file = request.FILES['file']
             content_data['file'] = file
         serializer = ContentSerializer(content, data=content_data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-
-        contents_data = {
-            "lesson": contents.lesson_id,
-            "content": content.pk,
-            "owner": contents.owner.pk,
+        lesson_data = {
+            "title": data['title'],
+            "owner": lesson.owner.pk,
+            "description": lesson.description.pk,
             "last_edited_at": datetime.datetime.now(),
+            "course":lesson.course.pk
         }
-        serializer = ContentsSerializer(contents, data=contents_data)
+        serializer = LessonSerializer(lesson, data=lesson_data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=HTTP_200_OK)
 
     def get(self, request, *args, **kwargs):
         pk = kwargs['pk']
-        contents = get_object_or_404(Contents, pk=pk)
-        serializer = ContentsDetailSerializer(contents)
+        lesson = get_object_or_404(Lesson, pk=pk)
+        serializer = LessonDetailSerializer(lesson)
 
         return Response(serializer.data, status=HTTP_200_OK)
 
-
-class ContentsInactivateAPIView(APIView):
+class LessonInactivateAPIView(APIView):
     def put(self, request, *args, **kwargs):
         pk = kwargs['pk']
-        content = get_object_or_404(Contents, pk=pk)
-        if not content.is_authorized(request.user):
+        lesson = get_object_or_404(Lesson, pk=pk)
+        if not lesson.is_authorized(request.user):
             return Response(status=401)
-        content.is_active = False
-        content.save()
+        lesson.is_active = False
+        lesson.save()
         return Response(status=HTTP_200_OK)
 
 
-class ContentsActivateAPIView(APIView):
+class LessonActivateAPIView(APIView):
     def put(self, request, *args, **kwargs):
         pk = kwargs['pk']
-        content = get_object_or_404(Contents, pk=pk)
-        if not content.is_authorized(request.user):
+        lesson = get_object_or_404(Lesson, pk=pk)
+        if not lesson.is_authorized(request.user):
             return Response(status=401)
-        content.is_active = True
-        content.save()
+        lesson.is_active = True
+        lesson.save()
         return Response(status=HTTP_200_OK)
 
-class TeacherContentsListAPIView(ListAPIView):
-    serializer_class = ContentsDetailSerializer
-    queryset = Contents.objects.all()
+class TeacherLessonsAPIView(ListAPIView):
+    serializer_class = LessonDetailSerializer
 
     def get_queryset(self):
-        return Contents.objects.filter(lesson=self.kwargs.get("pk")).order_by("place")
+        return Lesson.objects.filter(course=self.kwargs.get("pk")).order_by("place")
 
 class ChangePlaceAPIView(APIView):
     def put(self, request, *args, **kwargs):
         pk = kwargs['pk']
-        content = get_object_or_404(Contents, pk=pk)
-        if not content.is_authorized(request.user):
+        lesson = get_object_or_404(Lesson, pk=pk)
+        if not lesson.is_authorized(request.user):
             return Response(status=401)
         place=request.data['place']
-        lte=content.place
+        lte=lesson.place
         gte=place
         change=1
         if lte < gte:
             lte=place
-            gte=content.place
+            gte=lesson.place
             change=-1
-        contents=Contents.objects.filter(place__gte=gte).filter(place__lte=lte)
-        for l in contents:
+        lessons=Lesson.objects.filter(place__gte=gte).filter(place__lte=lte)
+        for l in lessons:
             l.place=l.place+change
             l.save()
-        content.place=place
-        content.save()
+        lesson.place=place
+        lesson.save()
         return Response(status=HTTP_200_OK)
