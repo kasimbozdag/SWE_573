@@ -24,5 +24,9 @@ urlpatterns = [
     url(r'^choices/(?P<pk>[0-9]+)/activate', views.ChoiceActivateAPIView.as_view(), name="choice-activate"),
     # url(r'^(?P<pk>[0-9]+)/change', views.ChangePlaceAPIView.as_view(), name="change"),
     url(r'^choices/(?P<pk>[0-9]+)', views.ChoiceAPIView.as_view(), name="choice"),
+    url(r'^relation/(?P<pk>[0-9]+)', views.QuizRelationCreateAPIView.as_view(), name="create-qr"),
+    url(r'^relations', views.QuizRelationListAPIView.as_view(), name="list-qr"),
+    url(r'^questions/relation/(?P<pk>[0-9]+)', views.QuestionRelationCreateAPIView.as_view(), name="create-qqr"),
+    url(r'^questions/relations/(?P<pk>[0-9]+)', views.QuestionRelationListAPIView.as_view(), name="list-qqr"),
 
 ]

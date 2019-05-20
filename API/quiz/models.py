@@ -56,3 +56,19 @@ class Choice(models.Model):
             return True
         return False
 
+
+class QuizRelation(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    right = models.IntegerField(default=0)
+    wrong = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+
+
+class QuestionRelation(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.DO_NOTHING)
+    quiz = models.ForeignKey(QuizRelation, on_delete=models.DO_NOTHING)
+    user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    answer = models.ForeignKey(Choice, on_delete=models.DO_NOTHING)
+    right = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)

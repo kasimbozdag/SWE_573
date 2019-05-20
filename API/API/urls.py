@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^lessons/', include('lesson.urls')),
     url(r'^contents/', include('content.urls')),
     url(r'^quizzes/', include('quiz.urls')),
+    url(r'^tags/', include('tag.urls')),
 ]
 
 if settings.DEBUG:
