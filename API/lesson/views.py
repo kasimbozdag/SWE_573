@@ -26,11 +26,12 @@ class LessonCreateAPIView(APIView):
         serializer = ContentSerializer(data=content)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        place=Lesson.objects.filter(course=course.id).count()+1
         lesson = {
             "title": data['title'],
             "owner": user.pk,
             "description": serializer.instance.pk,
-            "place": data['place'],
+            "place": place,
             "course": kwargs.get("pk"),
         }
         serializer = LessonSerializer(data=lesson)

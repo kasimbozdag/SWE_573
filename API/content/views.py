@@ -25,11 +25,12 @@ class ContentCreateAPIView(APIView):
         serializer = ContentSerializer(data=content)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        place = Contents.objects.filter(lesson=lesson.id).count() + 1
         contents = {
             "lesson": kwargs.get("pk"),
             "content": serializer.instance.pk,
             "owner": user.pk,
-            "place": data['place'],
+            "place": place,
         }
         serializer = ContentsSerializer(data=contents)
         serializer.is_valid(raise_exception=True)

@@ -35,5 +35,5 @@ class LessonDetailSerializer(ModelSerializer):
     def get_quiz(self, obj):
         q = Quiz.objects.filter(lesson=obj.pk, is_active=True).first()
         if q:
-            return True
+            return q.pk
         return False

@@ -1,5 +1,6 @@
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
+from content.serializers import ContentSerializer
 from quiz.models import Quiz, Question, Choice, QuizRelation, QuestionRelation
 
 
@@ -32,14 +33,14 @@ class QuestionSerializer(ModelSerializer):
 
 class QuestionDetailSerializer(ModelSerializer):
     answers = SerializerMethodField()
-
+    description = ContentSerializer()
     class Meta:
         model = Question
         fields = "__all__"
 
     def get_answers(self, obj):
         total = QuestionRelation.objects.filter(question=obj.pk).count()
-        right = QuestionRelation.objects.filter(right=True).count()
+        right = QuestionRelation.objects.filter(question=obj.pk,right=True).count()
         statistics={"total": total, "right": right}
         choices=Choice.objects.filter(question=obj.pk,is_active=True)
         for c in choices:
@@ -48,12 +49,16 @@ class QuestionDetailSerializer(ModelSerializer):
         return statistics
 
 
-class ChoiceSerializer(ModelSerializer):
+class ChoiceDetailSerializer(ModelSerializer):
+    description = ContentSerializer()
     class Meta:
         model = Choice
         fields = "__all__"
 
-
+class ChoiceSerializer(ModelSerializer):
+    class Meta:
+        model = Choice
+        fields = "__all__"
 class QuizRelationSerializer(ModelSerializer):
     class Meta:
         model = QuizRelation

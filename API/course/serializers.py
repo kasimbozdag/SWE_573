@@ -36,7 +36,8 @@ class CourseDetailSerializer(ModelSerializer):
         if user:
             if not user.is_anonymous:
                 e = Enrollment.objects.filter(course=obj.pk, user=user.pk).first()
-                return True
+                if e:
+                    return e.pk
         return False
 
     def get_enrolled(self, obj):

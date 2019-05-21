@@ -12,7 +12,7 @@ from content.serializers import ContentSerializer
 from lesson.models import Lesson
 from quiz.models import Quiz, Question, Choice, QuizRelation, QuestionRelation
 from quiz.serializers import QuizSerializer, QuestionSerializer, ChoiceSerializer, QuizRelationSerializer, QuizRelationDetailSerializer, QuizDetailSerializer, \
-    QuestionRelationSerializer, QuestionRelationDetailSerializer, QuestionDetailSerializer
+    QuestionRelationSerializer, QuestionRelationDetailSerializer, QuestionDetailSerializer, ChoiceDetailSerializer
 
 
 class QuizCreateAPIView(APIView):
@@ -181,7 +181,7 @@ class ChoiceCreateAPIView(APIView):
 
 
 class ChoiceListAPIView(ListAPIView):
-    serializer_class = ChoiceSerializer
+    serializer_class = ChoiceDetailSerializer
 
     def get_queryset(self):
         return Choice.objects.filter(question=self.kwargs.get("pk"), is_active=True)

@@ -93,14 +93,15 @@ class CourseListAPIView(ListAPIView):
                 return Course.objects.all()
             if query == "title":
                 return Course.objects.all().order_by("title")
-        return Course.objects.all().order_by("-created_at")
+        return Course.objects.filter(is_active=True).order_by("-created_at")
 
 
 class TeacherCoursesAPIView(ListAPIView):
     serializer_class = CourseDetailSerializer
 
     def get_queryset(self):
-        return Course.objects.filter(owner=self.request.user)
+        qr=Course.objects.filter(owner=self.request.user.pk)
+        return Course.objects.filter(owner=self.request.user.pk)
 
 
 class CourseInactivateAPIView(APIView):
