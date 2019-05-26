@@ -231,8 +231,22 @@ class Lesson extends Component {
         );
         elements.push(element);
       }
+    } else if (username && lesson.quiz) {
+      let quiz_url = "/Student_quiz/" + lesson.quiz;
+      let element = (
+        <div
+          key="quiz"
+          style={{
+            padding: 10
+          }}
+        >
+          <Link className="btn btn-primary " to={quiz_url}>
+            Quiz
+          </Link>
+        </div>
+      );
+      elements.push(element);
     }
-
     if (username === null) {
       return (
         <div
@@ -388,44 +402,48 @@ class Lesson extends Component {
           key={i}
           style={{
             background: "white",
-            padding: 20,
-            borderRadius: 25,
-            margin: 20,
-            height: 440
+            marginLeft: 20,
+            borderRadius: 25
           }}
         >
-          <div className="row">
-            <div
-              className="text-center col-md-3"
-              style={{
-                height: 400,
-                padding: 10
-              }}
-            >
-              <img
-                className="img-fluid rounded"
-                src={img_url}
-                style={{
-                  height: 380
-                }}
-              />
-            </div>
-            <div className="col-md-6">
-              <div className="text-center font-weight-bold">
-                <h4>{content.sub_title}</h4>
+          <div
+            style={{
+              margin: 10
+            }}
+          >
+            <div className="row">
+              <div className="text-center col-md-3">
+                <img
+                  className="img-fluid rounded"
+                  src={img_url}
+                  style={{
+                    height: 380
+                  }}
+                />
               </div>
-              <div
-                className="text-center"
-                style={{
-                  height: 400,
-                  overflow: "hidden"
-                }}
-              >
-                {content.text}
-              </div>
-              <div className="row">
-                <div className="col-md-6">{pre}</div>
-                <div className="col-md-2">{next}</div>
+              <div className="col-md-9">
+                <div
+                  className="text-center font-weight-bold"
+                  style={{
+                    height: 30,
+                    overflow: "hidden"
+                  }}
+                >
+                  <h4>{content.sub_title}</h4>
+                </div>
+                <div
+                  className="text-center"
+                  style={{
+                    height: 380,
+                    overflow: "hidden"
+                  }}
+                >
+                  {content.text}
+                </div>
+                <div className="row">
+                  <div className="col-md-6">{pre}</div>
+                  <div className="col-md-2">{next}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -461,7 +479,11 @@ class Lesson extends Component {
     this.props.dispatch(pre());
   };
   _createQuiz = () => {
-    this.props.dispatch(createQuiz(this.props.match.params.id)).then();
+    this.props.dispatch(createQuiz(this.props.match.params.id)).then(() => {
+      let { id } = this.props.global.payload;
+      let url = "/quiz/" + id;
+      this.props.history.push(url);
+    });
   };
 }
 

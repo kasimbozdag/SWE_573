@@ -73,6 +73,7 @@ export default function(state = initialState, action) {
     window.localStorage.setItem(LOCAL_STORAGE_USER, null);
     return {
       ...state,
+      loginCompleted: false,
       username: null,
       user: null,
       token: null,

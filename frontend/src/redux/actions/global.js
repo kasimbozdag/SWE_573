@@ -35,7 +35,10 @@ import {
   TRY_GET_QUESTIONS_SUCCESS,
   TRY_GET_QUESTION_SUCCESS,
   TRY_CREATE_CHOICE_SUCCESS,
-  TRY_GET_CHOICES_SUCCESS
+  TRY_GET_CHOICES_SUCCESS,
+  TRY_GET_WIKITAGS_SUCCESS,
+  TRY_GET_QUIZ_RELATION_SUCCESS,
+  TRY_GET_QUIZ_RELATIONS_SUCCESS
 } from "../actionTypes";
 
 export const next = () => ({
@@ -182,6 +185,18 @@ export const createChoiceSuccessful = responseData => ({
 });
 export const getChoicesSuccessful = responseData => ({
   type: TRY_GET_CHOICES_SUCCESS,
+  payload: responseData
+});
+export const getWikitagsSuccessful = responseData => ({
+  type: TRY_GET_WIKITAGS_SUCCESS,
+  payload: responseData
+});
+export const getQuizRelationSuccessful = responseData => ({
+  type: TRY_GET_QUIZ_RELATION_SUCCESS,
+  payload: responseData
+});
+export const getQuizRelationsSuccessful = responseData => ({
+  type: TRY_GET_QUIZ_RELATIONS_SUCCESS,
   payload: responseData
 });
 export const getCourses = () => (dispatch, getState, xmlService) => {
@@ -467,7 +482,7 @@ export const createQuiz = id => (dispatch, getState, xmlService) => {
       method: "POST",
       sendToken: true
     })
-    .then(res => dispatch(getLesson(id)))
+    .then(res => dispatch(getPayload(res)))
     .catch(err => dispatch(getPayload(err)));
 };
 export const getQuiz = id => (dispatch, getState, xmlService) => {
@@ -499,19 +514,30 @@ export const activateQuiz = id => (dispatch, getState, xmlService) => {
     .then(res => dispatch(getQuiz(id)))
     .catch(err => dispatch(getPayload(err)));
 };
-export const createQuestion = question => (dispatch, getState, xmlService) => {
-  let { file, text, title, id } = question;
-  const formData = new FormData();
-  formData.append("file", file, file.name);
-  formData.append("text", text);
-  formData.append("title", title);
+export const createQuestion = data => (dispatch, getState, xmlService) => {
+  let { choices, question, id } = data;
+  let body = { choices, question };
   return xmlService
     .fetch({
       path: "quizzes/create_question/" + id,
       method: "POST",
-      body: formData,
+      body: body,
       sendToken: true,
-      contentType: "multipart/form-data"
+      contentType: "application/json"
+    })
+    .then(res => dispatch(createQuestionSuccessful(res)))
+    .catch(err => dispatch(getPayload(err)));
+};
+export const editQuestion = data => (dispatch, getState, xmlService) => {
+  let { choices, question, id } = data;
+  let body = { choices, question };
+  return xmlService
+    .fetch({
+      path: "quizzes/questions/" + id,
+      method: "PUT",
+      body: body,
+      sendToken: true,
+      contentType: "application/json"
     })
     .then(res => dispatch(createQuestionSuccessful(res)))
     .catch(err => dispatch(getPayload(err)));
@@ -520,6 +546,15 @@ export const getQuestions = id => (dispatch, getState, xmlService) => {
   return xmlService
     .fetch({
       path: "quizzes/questions/" + id + "/list",
+      method: "GET"
+    })
+    .then(res => dispatch(getQuestionsSuccessful(res)))
+    .catch(err => dispatch(getPayload(err)));
+};
+export const getMyQuestions = id => (dispatch, getState, xmlService) => {
+  return xmlService
+    .fetch({
+      path: "quizzes/questions/" + id + "/my",
       method: "GET"
     })
     .then(res => dispatch(getQuestionsSuccessful(res)))
@@ -579,5 +614,88 @@ export const getChoices = id => (dispatch, getState, xmlService) => {
       method: "GET"
     })
     .then(res => dispatch(getChoicesSuccessful(res)))
+    .catch(err => dispatch(getPayload(err)));
+};
+export const getWikitags = keyword => (dispatch, getState, xmlService) => {
+  return xmlService
+    .fetch({
+      path: "tags/wikitags/" + keyword,
+      method: "GET"
+    })
+    .then(res => dispatch(getWikitagsSuccessful(res)))
+    .catch(err => dispatch(getPayload(err)));
+};
+export const addWikitags = tagConfig => (dispatch, getState, xmlService) => {
+  let { id, type, data } = tagConfig;
+  let tags = data;
+  return xmlService
+    .fetch({
+      path: "tags/entity/" + type + "/" + id,
+      method: "POST",
+      body: data,
+      sendToken: true,
+      contentType: "application/json"
+    })
+    .then()
+    .catch(err => dispatch(getPayload(err)));
+};
+export const deleteTags = id => (dispatch, getState, xmlService) => {
+  return xmlService
+    .fetch({
+      path: "tags/entity/" + id,
+      method: "DELETE",
+      sendToken: true,
+      contentType: "application/json"
+    })
+    .then()
+    .catch(err => dispatch(getPayload(err)));
+};
+export const createQuizRelation = id => (dispatch, getState, xmlService) => {
+  return xmlService
+    .fetch({
+      path: "quizzes/relation/" + id,
+      method: "POST",
+      sendToken: true,
+      contentType: "application/json"
+    })
+    .then(res => dispatch(getQuizRelation(res.id)))
+    .catch(err => dispatch(getPayload(err)));
+};
+export const getQuizRelation = id => (dispatch, getState, xmlService) => {
+  return xmlService
+    .fetch({
+      path: "quizzes/relation/" + id,
+      method: "GET",
+      sendToken: true,
+      contentType: "application/json"
+    })
+    .then(res => dispatch(getQuizRelationSuccessful(res)))
+    .catch(err => dispatch(getPayload(err)));
+};
+export const getQuizRelations = id => (dispatch, getState, xmlService) => {
+  return xmlService
+    .fetch({
+      path: "quizzes/relations/" + id,
+      method: "GET",
+      sendToken: true,
+      contentType: "application/json"
+    })
+    .then(res => dispatch(getQuizRelationsSuccessful(res)))
+    .catch(err => dispatch(getPayload(err)));
+};
+export const createQuestionRelation = (data, id) => (
+  dispatch,
+  getState,
+  xmlService
+) => {
+  return xmlService
+    .fetch({
+      path: "quizzes/questions/relation/" + id,
+      method: "POST",
+      body: data,
+      sendToken: true,
+      contentType: "application/json"
+    })
+    .then(res => dispatch(getQuizRelation(res.quiz)))
     .catch(err => dispatch(getPayload(err)));
 };

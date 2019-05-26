@@ -69,21 +69,13 @@ class NavBar extends Component {
             </li>
             {myC}
             {myE}
-            <li className="nav-item">
-              <a className="nav-link" href="/">
-                Features
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/">
-                Pricing
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="/">
-                About
-              </a>
-            </li>
+            {username ? (
+              <li className="nav-item active">
+                <Link className="nav-link" to="/create_course">
+                  Create new Course
+                </Link>
+              </li>
+            ) : null}
           </ul>
           <form className="form-inline">
             <input

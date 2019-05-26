@@ -21,6 +21,8 @@ import CreateQuestion from "./Pages/CreateQuestion";
 import NavBar from "./Components/NavBar";
 import Question from "./Pages/Question";
 import CreateChoice from "./Pages/CreateChoice";
+import AddTags from "./Pages/AddTags";
+import QuizStudent from "./Pages/QuizStudent";
 import Footer from "./Components/Footer";
 
 class App extends Component {
@@ -49,8 +51,11 @@ class App extends Component {
           <Route exact path="/content_edit/:id" component={EditContent} />
           <Route exact path="/quiz/:id" component={Quiz} />
           <Route exact path="/createquestion/:id" component={CreateQuestion} />
+          <Route exact path="/editquestion/:id" component={CreateQuestion} />
           <Route exact path="/question/:id" component={Question} />
           <Route exact path="/createchoice/:id" component={CreateChoice} />
+          <Route exact path="/addtags/:type/:id" component={AddTags} />
+          <Route exact path="/Student_quiz/:id" component={QuizStudent} />
         </Switch>
       </React.Fragment>
     );

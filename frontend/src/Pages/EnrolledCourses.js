@@ -8,7 +8,7 @@ class EnrolledCourses extends Component {
   }
   create_courses() {
     let { enrolledCourses } = this.props.global;
-    if (enrolledCourses.length === 0) return null;
+    if (!enrolledCourses || enrolledCourses.length === 0) return null;
     let elements = [];
 
     for (let i = 0; i < enrolledCourses.length; i++) {

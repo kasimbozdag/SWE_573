@@ -3,26 +3,25 @@ import {
   getQuiz,
   deactivateQuiz,
   activateQuiz,
-  enrollCourse,
+  activateQuestion,
+  deactivateQuestion,
   dropCourse,
   getAuthCourse,
-  getQuestions,
+  getMyQuestions,
   getMyLessons
 } from "../redux/actions/global";
 import { connect } from "react-redux";
 import Moment from "moment";
 import { API_URL } from "../redux/configureStore";
 import { Link, Redirect } from "react-router-dom";
+import { isTemplateElement } from "@babel/types";
 class Quiz extends Component {
   constructor(props) {
     super(props);
   }
   componentDidMount() {
     this.props.dispatch(getQuiz(this.props.match.params.id)).then();
-    this.props.dispatch(getQuestions(this.props.match.params.id)).then();
-    if (this.props.auth.token) {
-      this.props.dispatch(getMyLessons(this.props.match.params.id)).then();
-    }
+    this.props.dispatch(getMyQuestions(this.props.match.params.id)).then();
   }
   create_courses() {
     let { quiz } = this.props.global;
@@ -74,7 +73,7 @@ class Quiz extends Component {
 
     let elements = [];
     let element = null;
-    if (username !== null) {
+    if (username !== null && username === quiz.owner.username) {
       console.log("quiz is active" + quiz.is_active);
       if (quiz.is_active) {
         let element = (
@@ -133,8 +132,7 @@ class Quiz extends Component {
         style={{
           padding: 20,
           borderRadius: 25,
-          margin: 20,
-          height: 440
+          margin: 20
         }}
       >
         {elements}
@@ -148,70 +146,91 @@ class Quiz extends Component {
 
     if (quiz === null || quiz.id != id) return null;
 
-    if (!username) {
+    if (!username || username !== quiz.owner.username) {
       return null;
     } else {
       let { questions } = this.props.global;
 
-      let elements = [];
-
-      for (let i = 0; i < questions.length; i++) {
-        let content = questions[i].description;
-        let lesson = questions[i];
-
-        let lesson_link = "/question/" + questions[i].id;
-        let f = null;
-        if (content.file)
-          f = (
-            <div
-              className="text-center"
-              style={{
-                height: 300,
-                margin: 10
-              }}
-            >
-              <img
-                className="img-fluid rounded"
-                src={content.file}
+      let elements = questions.map((item, i) => (
+        <div
+          className="col-md-8"
+          key={i}
+          style={{
+            background: "white",
+            padding: 20,
+            borderRadius: 25,
+            marginBottom: 20
+          }}
+        >
+          <div style={{}}>
+            <div className="row">
+              <div
+                key="edit"
                 style={{
-                  height: 300
+                  padding: 5
                 }}
-              />
-            </div>
-          );
-        let element = (
-          <div
-            className="col-md-3"
-            key={i}
-            style={{
-              background: "white",
-              padding: 20,
-              borderRadius: 25,
-              margin: 20,
-              height: 400
-            }}
-          >
-            <div className="text-center font-weight-bold">
-              <Link className="nav-link " to={lesson_link}>
-                <h4>{content.sub_title}</h4>
-                {f}
+              >
+                <Link
+                  className="btn btn-primary btn-sm"
+                  to={"/editquestion/" + item.id}
+                >
+                  Edit
+                </Link>
+              </div>
+              {item.is_active ? (
                 <div
-                  className="text-center"
+                  key="deac"
                   style={{
-                    height: 200,
-                    overflow: "hidden"
+                    padding: 5
                   }}
                 >
-                  {content.text}
+                  <button
+                    className="btn btn-danger btn-sm"
+                    onClick={this._doDeactivateQ.bind(this, item.id)}
+                  >
+                    Deactivate
+                  </button>
                 </div>
-                {f}
-              </Link>
+              ) : (
+                <div
+                  style={{
+                    padding: 5
+                  }}
+                  key="ac"
+                >
+                  <button
+                    className="btn btn-success btn-sm"
+                    onClick={this._doActivateQ.bind(this, item.id)}
+                  >
+                    Activate
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="font-weight-bold">
+              <div>{item.description}</div>
+              {item.choices.map((choice, k) => (
+                <div key={"choice" + k} className="col-md-12">
+                  <div className="row h-100 f-flex align-items-center">
+                    <div key={"raido" + k} className="h-100 d-flex">
+                      <input
+                        type="radio"
+                        name={"answer" + i + k}
+                        value={k}
+                        checked={choice.is_answer}
+                        readOnly
+                      />
+                    </div>
+                    <div key={"text" + k} className="col-md-10">
+                      {choice.description}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        );
-
-        elements.push(element);
-      }
+        </div>
+      ));
 
       return elements;
     }
@@ -225,7 +244,7 @@ class Quiz extends Component {
             {this.get_actions()}
           </div>
         </div>
-        <div className="d-flex align-items-center">
+        <div className="d-flex ">
           <div className="offset-md-1 row w-100 ">{this.getLessons()}</div>
         </div>
       </React.Fragment>
@@ -235,18 +254,27 @@ class Quiz extends Component {
     this.props.dispatch(deactivateQuiz(this.props.match.params.id)).then();
   };
   _doActivate = () => {
-    this.props.dispatch(activateQuiz(this.props.match.params.id)).then();
+    this.props
+      .dispatch(activateQuiz(this.props.match.params.id))
+      .then(res =>
+        this.props.dispatch(getMyQuestions(this.props.match.params.id))
+      );
   };
-  _doEnroll = () => {
-    //this.props.dispatch(enrollQuiz(this.props.match.params.id)).then();
-  };
-  _doDrop = id => {
-    /*this.props
-      .dispatch(
-        dropQuiz(this.props.global.course.enroll, this.props.match.params.id)
-      )
-      .then();*/
-  };
+  _doDeactivateQ(id, e) {
+    this.props
+      .dispatch(deactivateQuestion(id))
+      .then(res =>
+        this.props.dispatch(getMyQuestions(this.props.match.params.id))
+      );
+  }
+  _doActivateQ(id, e) {
+    console.log(id);
+    this.props
+      .dispatch(activateQuestion(id))
+      .then(res =>
+        this.props.dispatch(getMyQuestions(this.props.match.params.id))
+      );
+  }
 }
 
 const mapStateToProps = state => ({

@@ -7,12 +7,14 @@ import {
   dropCourse,
   getAuthCourse,
   getLessons,
-  getMyLessons
+  getMyLessons,
+  deleteTags
 } from "../redux/actions/global";
 import { connect } from "react-redux";
 import Moment from "moment";
 import { API_URL } from "../redux/configureStore";
 import { Link, Redirect } from "react-router-dom";
+import "../Styles/Tooltip.css";
 class Course extends Component {
   constructor(props) {
     super(props);
@@ -28,87 +30,120 @@ class Course extends Component {
   }
   create_courses() {
     let { course } = this.props.global;
-
+    let { username } = this.props.auth;
     if (course === null) return null;
     let i = this.props.match.params.id;
-
+    let { tags } = course;
     let content = course.description;
     let img_url = API_URL + content.file;
+    console.log("tags=>", tags);
     let element = (
       <div
         className="col-md-10"
         key={i}
         style={{
           background: "white",
-          padding: 20,
           borderRadius: 25,
-          margin: 20,
-          height: 440
+          marginTop: 20
         }}
       >
-        <div className="row">
-          <div
-            className="text-center col-md-3"
-            style={{
-              height: 400,
-              padding: 10
-            }}
-          >
-            <img
-              className="img-fluid rounded"
-              src={img_url}
-              style={{
-                height: 380
-              }}
-            />
-          </div>
-          <div className="col-md-6">
-            <div className="text-center font-weight-bold">
-              <h4>{course.title}</h4>
-            </div>
+        <div
+          style={{
+            margin: 20
+          }}
+        >
+          <div className="row">
             <div
-              className="text-center"
+              className="text-center col-md-3"
               style={{
-                height: 400,
-                overflow: "hidden"
+                padding: 10
               }}
             >
-              {content.text}
+              <img
+                className="img-fluid rounded"
+                src={img_url}
+                style={{
+                  height: 380
+                }}
+              />
             </div>
-          </div>
-          <div className="col-md-3">
-            <table className="table">
-              <tbody>
-                <tr>
-                  <td>Enrolled</td>
-                  <td>{course.enrolled}</td>
-                </tr>
-                <tr>
-                  <td>Lessons</td>
-                  <td>{course.lessons}</td>
-                </tr>
-                <tr>
-                  <td>Quizzes</td>
-                  <td>{course.quizzes}</td>
-                </tr>
-                <tr>
-                  <td>Created By</td>
-                  <td>{course.owner.username}</td>
-                </tr>
-                <tr>
-                  <td>Number of Visits</td>
-                  <td>{course.number_of_visits}</td>
-                </tr>
-                <tr>
-                  <td>Created At</td>
-                  <td>{Moment(course.created_at).format("DD/MM/Y hh:mm")}</td>
-                </tr>
-                <tr>
-                  <td>Prerequisite</td>
-                  <td>{course.prerequisite}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="col-md-6 h100">
+              <div className="text-center font-weight-bold">
+                <h4>{course.title}</h4>
+              </div>
+              <div className="h-100 d-flex flex-column justify-content-around">
+                <div
+                  className="text-center "
+                  style={{
+                    overflow: "hidden"
+                  }}
+                >
+                  {content.text}
+                </div>
+                <div className="d-flex justify-content-start">
+                  {tags.map(item => (
+                    <div
+                      className="d-flex justify-content-start tooltip2"
+                      style={{
+                        marginRight: 10,
+                        backgroundColor: "lightblue",
+
+                        borderRadius: 10
+                      }}
+                    >
+                      {username === item.user.username ? (
+                        <button
+                          className="btn btn-link"
+                          onClick={this._deleteTag.bind(this, item.id)}
+                        >
+                          <i className="fa fa-times text-danger" />
+                        </button>
+                      ) : null}
+                      <a key={item.id} href={item.tag.url}>
+                        <div style={{ padding: 10 }}>{item.tag.label}</div>
+                        <span className="tooltiptext">
+                          {item.tag.description}
+                        </span>
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="col-md-3">
+              <table className="table">
+                <tbody>
+                  <tr>
+                    <td>Enrolled</td>
+                    <td>{course.enrolled}</td>
+                  </tr>
+                  <tr>
+                    <td>Lessons</td>
+                    <td>{course.lessons}</td>
+                  </tr>
+                  <tr>
+                    <td>Quizzes</td>
+                    <td>{course.quizzes}</td>
+                  </tr>
+                  <tr>
+                    <td>Created By</td>
+                    <td>{course.owner.username}</td>
+                  </tr>
+                  <tr>
+                    <td>Number of Visits</td>
+                    <td>{course.number_of_visits}</td>
+                  </tr>
+                  <tr>
+                    <td>Created At</td>
+                    <td>{Moment(course.created_at).format("DD/MM/Y hh:mm")}</td>
+                  </tr>
+                  <tr>
+                    <td>Prerequisite</td>
+                    <td>{course.prerequisite}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -201,6 +236,20 @@ class Course extends Component {
         >
           <Link className="btn btn-primary " to={add_lesson_url}>
             Add Lesson
+          </Link>
+        </div>
+      );
+      elements.push(element);
+      let add_tag_url = "/addtags/course/" + course.id;
+      element = (
+        <div
+          key="addTags"
+          style={{
+            padding: 10
+          }}
+        >
+          <Link className="btn btn-primary " to={add_tag_url}>
+            Add Tag
           </Link>
         </div>
       );
@@ -378,6 +427,7 @@ class Course extends Component {
             {this.getLessons()}
           </div>
         </div>
+        <script>$("#popoverData").popover();</script>
       </React.Fragment>
     );
   }
@@ -397,6 +447,13 @@ class Course extends Component {
       )
       .then();
   };
+  _deleteTag(id, e) {
+    this.props
+      .dispatch(deleteTags(id))
+      .then(res =>
+        this.props.dispatch(getAuthCourse(this.props.match.params.id))
+      );
+  }
 }
 
 const mapStateToProps = state => ({

@@ -7,8 +7,6 @@ import {
   TRY_GET_COURSE_FAILURE,
   TRY_DEACTIVATE_COURSE_SUCCESS,
   TRY_DEACTIVATE_COURSE_FAILURE,
-  TRY_ACTIVATE_COURSE_SUCCESS,
-  TRY_ACTIVATE_COURSE_FAILURE,
   TRY_GET_ENROLLED_COURSES_SUCCESS,
   TRY_GET_ENROLLED_COURSES_FAILURE,
   TRY_CREATE_COURSE_SUCCESS,
@@ -37,7 +35,10 @@ import {
   TRY_GET_QUESTIONS_SUCCESS,
   TRY_GET_QUESTION_SUCCESS,
   TRY_CREATE_CHOICE_SUCCESS,
-  TRY_GET_CHOICES_SUCCESS
+  TRY_GET_CHOICES_SUCCESS,
+  TRY_GET_WIKITAGS_SUCCESS,
+  TRY_GET_QUIZ_RELATION_SUCCESS,
+  TRY_GET_QUIZ_RELATIONS_SUCCESS
 } from "../actionTypes";
 
 const initialState = {
@@ -53,6 +54,9 @@ const initialState = {
   content: null,
   quiz: null,
   choices: [],
+  wikitags: [],
+  quizRelations: [],
+  quizRelation: null,
   courseCreated: false,
   courseCreatedFailed: false,
   lessonCreated: false,
@@ -346,6 +350,26 @@ export default function(state = initialState, action) {
       payload: payload
     };
   }
-
+  if (action.type === TRY_GET_WIKITAGS_SUCCESS) {
+    return {
+      ...state,
+      wikitags: payload.search,
+      payload: payload
+    };
+  }
+  if (action.type === TRY_GET_QUIZ_RELATION_SUCCESS) {
+    return {
+      ...state,
+      quizRelation: payload,
+      payload: payload
+    };
+  }
+  if (action.type === TRY_GET_QUIZ_RELATIONS_SUCCESS) {
+    return {
+      ...state,
+      quizRelations: payload.results,
+      payload: payload
+    };
+  }
   return state;
 }
