@@ -10,6 +10,6 @@ urlpatterns = [
     #url(r'^(?P<pk>[0-9]+)/activate', views.LessonActivateAPIView.as_view(), name="activate"),
     #url(r'^(?P<pk>[0-9]+)/change', views.ChangePlaceAPIView.as_view(), name="change"),
     url(r'^entity/(?P<pk>[0-9]+)', views.EntityTagAPIView.as_view(), name="et"),
-
+    url(r'^wikitags/(?P<keyword>[A-Za-z]+)', views.GetWikiTags.as_view(), name="wiki"),
 
 ]

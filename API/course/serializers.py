@@ -9,6 +9,8 @@ from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from lesson.models import Lesson
 from quiz.models import Quiz
+from tag.models import EntityTag
+from tag.serializers import EntityTagSerializer, EntityTagDetailSerializer
 
 
 class CourseSerializer(ModelSerializer):
@@ -27,6 +29,7 @@ class CourseDetailSerializer(ModelSerializer):
     lessons = SerializerMethodField()
     quizzes = SerializerMethodField()
     number_of_visits=SerializerMethodField()
+    tags=SerializerMethodField()
     class Meta:
         model = Course
         fields = "__all__"
@@ -82,6 +85,10 @@ class CourseDetailSerializer(ModelSerializer):
         obj.number_of_visits+=1
         obj.save()
         return obj.number_of_visits
+    def get_tags(self,obj):
+        model = ContentType.objects.get(model="course")
+        tags=EntityTag.objects.filter(content_type=model.pk, object_id=obj.pk)
+        return EntityTagDetailSerializer(tags,many=True).data
 
 class EnrollmentSerializer(ModelSerializer):
     class Meta:

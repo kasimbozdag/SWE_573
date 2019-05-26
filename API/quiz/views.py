@@ -66,22 +66,29 @@ class QuestionCreateAPIView(APIView):
         user = request.user
         data = request.data
         quiz = get_object_or_404(Quiz, pk=kwargs.get("pk"))
-        content = {'text': data['text'], "sub_title": data['title']}
-        if "file" in request.FILES:
-            file = request.FILES['file']
-            content['file'] = file
-        serializer = ContentSerializer(data=content)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        question = {
-            "owner": user.pk,
-            "description": serializer.instance.pk,
-            "quiz": kwargs.get("pk"),
+        question={
+            "description":data['question'],
+            "quiz":quiz.pk,
+            "owner":user.pk
         }
+
         serializer = QuestionSerializer(data=question)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=HTTP_200_OK)
+        choices = data['choices']
+        question=serializer.instance
+        for c in choices:
+            choice={
+                "description":c['text'],
+                "is_answer":c['is_answer'],
+                "question":question.pk,
+                "owner": user.pk
+            }
+
+            serializer = ChoiceSerializer(data=choice)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+        return Response(QuestionDetailSerializer(question).data, status=HTTP_200_OK)
 
 
 class QuestionListAPIView(ListAPIView):
@@ -100,24 +107,34 @@ class QuestionAPIView(APIView):
         question = get_object_or_404(Question, pk=pk)
         if not question.is_authorized(request.user):
             return Response(status=401)
-        content = question.description
-        content_data = {'text': data['text'], "last_edited_at": datetime.datetime.now(), "sub_title": data['title']}
-        if "file" in request.FILES:
-            file = request.FILES['file']
-            content_data['file'] = file
-        serializer = ContentSerializer(content, data=content_data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+
+
         question_data = {
             "owner": question.owner.pk,
-            "description": question.description.pk,
+            "description": data['question'],
             "last_edited_at": datetime.datetime.now(),
             "quiz": question.quiz.pk
         }
         serializer = QuestionSerializer(question, data=question_data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data, status=HTTP_200_OK)
+        choices = data['choices']
+        for c in choices:
+            choice_data={
+                "description":c['text'],
+                "is_answer":c['is_answer'],
+                "question":question.pk,
+                "owner": user.pk
+            }
+            if "id" in c:
+                choice=Choice.objects.filter(pk=c['id']).first()
+                if choice:
+                    serializer = ChoiceSerializer(choice,data=choice_data)
+            else:
+                serializer = ChoiceSerializer(data=choice_data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+        return Response(QuestionDetailSerializer(question).data, status=HTTP_200_OK)
 
     def get(self, request, *args, **kwargs):
         pk = kwargs['pk']
@@ -263,13 +280,16 @@ class QuizRelationCreateAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=HTTP_200_OK)
-
+    def get(self,request, *args, **kwargs):
+        user = request.user
+        qr=QuizRelation.objects.filter(pk=kwargs.get("pk")).first()
+        return Response(QuizRelationDetailSerializer(qr).data, status=HTTP_200_OK)
 
 class QuizRelationListAPIView(ListAPIView):
     serializer_class = QuizRelationDetailSerializer
 
     def get_queryset(self):
-        return QuizRelation.objects.filter(user=self.request.user.pk)
+        return QuizRelation.objects.filter(user=self.request.user.pk,quiz=self.kwargs.get("pk"))
 
 
 class QuestionRelationCreateAPIView(APIView):
@@ -278,23 +298,26 @@ class QuestionRelationCreateAPIView(APIView):
 
         choice = Choice.objects.filter(pk=request.data.get("answer")).first()
         quiz_r = QuizRelation.objects.filter(pk=request.data.get("quiz")).first()
-        if choice.is_answer:
-            quiz_r.right+=1
-        else:
-            quiz_r.wrong+=1
-        quiz_r.save()
+        question_r=QuestionRelation.objects.filter(quiz=request.data.get("quiz"),question=kwargs.get("pk")).first()
+        if not question_r:
+            if choice.is_answer:
+                quiz_r.right+=1
+            else:
+                quiz_r.wrong+=1
+            quiz_r.save()
 
-        qr = {
-            "user": user.pk,
-            "question": kwargs.get("pk"),
-            "quiz": request.data.get("quiz"),
-            "answer": request.data.get("answer"),
-            "right": choice.is_answer
-        }
-        serializer = QuestionRelationSerializer(data=qr)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=HTTP_200_OK)
+            qr = {
+                "user": user.pk,
+                "question": kwargs.get("pk"),
+                "quiz": request.data.get("quiz"),
+                "answer": request.data.get("answer"),
+                "right": choice.is_answer
+            }
+            serializer = QuestionRelationSerializer(data=qr)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=HTTP_200_OK)
+        return Response(QuestionRelationSerializer(question_r).data,status=HTTP_200_OK)
 
 
 class QuestionRelationListAPIView(ListAPIView):

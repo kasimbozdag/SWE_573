@@ -25,13 +25,13 @@ class Quiz(models.Model):
 class Question(models.Model):
     quiz = models.ForeignKey(Quiz, on_delete=models.DO_NOTHING)
     owner = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-    description = models.ForeignKey(Content, on_delete=models.CASCADE)
+    description = models.CharField(max_length=1024)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_edited_at = models.DateTimeField(auto_now_add=True, editable=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.description.sub_title
+        return self.description
 
     def is_authorized(self, user):
         if self.owner == user:
@@ -42,14 +42,14 @@ class Question(models.Model):
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.DO_NOTHING)
     owner = models.ForeignKey(User, on_delete=models.DO_NOTHING)
-    description = models.ForeignKey(Content, on_delete=models.CASCADE)
+    description = models.CharField(max_length=1024)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     last_edited_at = models.DateTimeField(auto_now_add=True, editable=True)
     is_active = models.BooleanField(default=True)
     is_answer = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.description.sub_title
+        return self.description
 
     def is_authorized(self, user):
         if self.owner == user:
