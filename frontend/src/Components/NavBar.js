@@ -13,7 +13,7 @@ class NavBar extends Component {
   render() {
     const { username } = this.props.auth;
     let right = (
-      <Link className="text-light" to="/login">
+      <Link className="text-light btn btn-link" to="/login">
         Login
       </Link>
     );

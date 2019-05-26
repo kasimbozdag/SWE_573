@@ -58,6 +58,8 @@ export default function(state = initialState, action) {
       ...state,
       signUpCompleted: true,
       signUpFailed: false,
+      loginFailed: false,
+      loginCompleted: false,
       payload: payload
     };
   }
@@ -65,6 +67,8 @@ export default function(state = initialState, action) {
     return {
       ...state,
       signUpFailed: true,
+      loginFailed: false,
+      loginCompleted: false,
       payload: payload
     };
   }
